@@ -4,3 +4,6 @@
 [submodule "clibs/debug"]
 	path = clibs/debug
 	url = git://github.com/0x00A/debug.git
+[submodule "clibs/libint"]
+	path = clibs/libint
+	url = git://github.com/alejandrogallo/libint.git
