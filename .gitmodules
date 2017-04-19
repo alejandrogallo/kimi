@@ -7,3 +7,6 @@
 [submodule "clibs/libint"]
 	path = clibs/libint
 	url = git://github.com/alejandrogallo/libint.git
+[submodule "clibs/eigen"]
+	path = clibs/eigen
+	url = git://github.com/RLovelett/eigen.git
