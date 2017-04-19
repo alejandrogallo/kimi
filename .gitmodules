@@ -1,6 +1,6 @@
 [submodule "clibs/inih"]
 	path = clibs/inih
-	url = git://github.com/clib/inih.git
+	url = git://github.com/clibs/inih.git
 [submodule "clibs/debug"]
 	path = clibs/debug
 	url = git://github.com/0x00A/debug.git
