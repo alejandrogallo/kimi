@@ -2,10 +2,12 @@ bin
 data
 tags
 test.sh
+.vim-run
 
 *.swp
 clibs/include/
 clibs/lib/
+clibs/lib64/
 clibs/build/
 clibs/share/
 
