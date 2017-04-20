@@ -53,20 +53,51 @@ int main(int argc, char* argv[]) {
   logger << logger.info << "Initializing basis set" << std::endl;
   libint2::BasisSet shells(basis_set, atoms);
 
+  shells.set_pure(true);
+
+  logger << logger.info
+         << "Number of basis functions = "
+         << shells.nbf()
+         << std::endl;
+  logger << logger.info
+         << "Maximum number of primitives in shells = "
+         << shells.max_nprim()
+         << std::endl;
+  logger << logger.info
+         << "Maximum value of l in shells = "
+         << shells.max_l()
+         << std::endl;
+
   for (unsigned i ; i < shells.size() ; i++) {
-    //std::cout << shells[i] << std::endl;
-    int csize = shells[i].cartesian_size();
-    int size = shells[i].size();
-    std::cout << "Shell " << i << std::endl;
-    std::cout << "  Cartesian size " << csize << std::endl;
-    std::cout << "  Size " << size << std::endl;
-    std::cout << "  Origin (Bohr) "
-              << shells[i].O[0]*kimi::bohr_to_angstrom << " "
-              << shells[i].O[1]*kimi::bohr_to_angstrom << " "
-              << shells[i].O[2]*kimi::bohr_to_angstrom << std::endl;
-    //std::cout << p << std::endl;
-    //std::cout << shells[i].cartesian_size() << std::endl;
-    //std::cout << shells[i].O << std::endl;
+    std::cout << shells[i] << std::endl;
+  }
+
+  std::cout << std::endl;
+  std::cout << std::endl;
+  std::cout << "Calculating overlaps" << std::endl;
+
+  std::cout <<
+  "  _                        " << std::endl <<
+  " /      *               3  " << std::endl <<
+  " |   phi  (r) phi  (r) d  r" << std::endl <<
+  "_/      i        j         " << std::endl;
+
+  libint2::Engine overlap_engine(
+    libint2::Operator::overlap,
+    shells.max_nprim(),
+    shells.max_l()
+  );
+
+  auto shell2bf = shells.shell2bf();
+
+  const auto& overlap_buffer = overlap_engine.results();
+
+  for (auto s1 = 0; s1 != shells.size(); ++s1) {
+    for (auto s2 = 0; s2 != shells.size(); ++s2) {
+      std::cout << "Compute shell set {" << s1 << "," << s2 << "} ... ";
+      overlap_engine.compute(shells[s1], shells[s2]);
+      std::cout << "Done" << std::endl;
+    }
   }
 
 
