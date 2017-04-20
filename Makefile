@@ -1,20 +1,27 @@
 
-CXX_libeigen = -I$(HOME)/.local/include/eigen3
 
-VERSION = \"0.0.0\"
+VERSION ?= \"0.0.0\"
 
-BINDIR = bin
-executable = $(BINDIR)/main
+BINDIR ?= bin
+executable ?= $(BINDIR)/main
 
-MF_DEBUG = @
+MF_DEBUG ?= @
 
-MACROS =\
+MACROS ?=\
 -DVERSION=$(VERSION)
+
+CFLAGS_CLIBS = -I$(PWD)/clibs/include
+LDFLAGS_CLIBS = -L$(PWD)/clibs/lib
+CFLAGS_libeigen = -I$(PWD)/clibs/include/eigen3/
+LDFLAGS_libint = -lint2
+CFLAGS_libint = -I$(PWD)/clibs/include/libint2
 
 INCLUDE_FLAGS= \
 -I$(PWD) \
-$(CXX_libeigen) \
-$(shell pkg-config --cflags libint2) \
+$(CFLAGS_CLIBS) \
+$(LDFLAGS_CLIBS) \
+$(CFLAGS_libeigen) \
+$(CFLAGS_CLIBS) \
 
 CXXFLAGS = \
 $(MACROS) \
@@ -22,6 +29,10 @@ $(INCLUDE_FLAGS) \
 
 CFLAGS = \
 $(CXXFLAGS)
+
+LD_FLAGS = \
+$(LDFLAGS_CLIBS) \
+$(LDFLAGS_libint) \
 
 CFILES = \
 clibs/inih/ini.c \
@@ -46,10 +57,8 @@ $(shell echo $(SOURCES) | sed "s/\.\S*/.d/g") \
 
 -include $(DEPFILES)
 
-LD_FLAGS = \
-$(shell pkg-config --libs libint2) \
 
-CXX = icc -std=c++11
+CXX = g++ -std=c++11
 CC = cc
 
 .DEFAULT_GOAL := $(executable)

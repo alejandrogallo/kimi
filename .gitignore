@@ -3,9 +3,14 @@ data
 tags
 test.sh
 
+*.swp
+clibs/include/
+clibs/lib/
+clibs/share/
 
 # Object files
 *.o
+*.d
 *.ko
 *.obj
 *.elf
