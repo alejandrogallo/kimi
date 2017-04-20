@@ -18,6 +18,7 @@ CFLAGS_libint = -I$(PWD)/clibs/include/libint2
 
 INCLUDE_FLAGS= \
 -I$(PWD) \
+-I$(PWD)/src \
 $(CFLAGS_CLIBS) \
 $(LDFLAGS_CLIBS) \
 $(CFLAGS_libeigen) \
