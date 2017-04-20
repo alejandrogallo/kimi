@@ -16,10 +16,10 @@
 #include <clibs/debug/debug.h>
 #include <clibs/inih/cpp/INIReader.h>
 
-static const std::string XYZ_INPUT_NAME = "input.xyz";
-static const std::string CONFIG_FILE_NAME = "config.ini";
+#include <constants.h>
 
-INIReader get_configuration(std::string file_name = CONFIG_FILE_NAME)
+
+INIReader get_configuration(std::string file_name = kimi::CONFIG_FILE_NAME)
 {
     INIReader reader(file_name);
     if (reader.ParseError() < 0) {
@@ -34,11 +34,11 @@ int main(int argc, char* argv[]) {
   std::cout << "VERSION: " << VERSION << std::endl;
   INIReader configuration = get_configuration();
   Debug logger("[main]", Debug::verbose, std::cout);
-  const std::string structure_file = configuration.Get("ini", "structure", XYZ_INPUT_NAME);
-  const std::string basis_set = configuration.Get("ini", "basis-set", XYZ_INPUT_NAME);
+  const std::string structure_file = configuration.Get("ini", "structure", kimi::XYZ_INPUT_NAME);
+  const std::string basis_set = configuration.Get("ini", "basis-set", "sto-3g");
 
 
-  logger << logger.info << "Config loaded from = " << CONFIG_FILE_NAME << std::endl
+  logger << logger.info << "Config loaded from = " << kimi::CONFIG_FILE_NAME << std::endl
                         << "Structure file     = " << structure_file   << std::endl
                         << "Basis set          = " << basis_set        << std::endl;
 
@@ -51,23 +51,28 @@ int main(int argc, char* argv[]) {
   std::vector<libint2::Atom> atoms = libint2::read_dotxyz(input_file);
 
   logger << logger.info << "Initializing basis set" << std::endl;
-  libint2::BasisSet orbitals(basis_set, atoms);
+  libint2::BasisSet shells(basis_set, atoms);
 
-  for (unsigned i ; i < orbitals.size() ; i++) {
-    //std::cout << orbitals[i] << std::endl;
-    //int p = orbitals[i].cartesian_size();
-    //std::cout << sizeof(p) << std::endl;
-    std::cout << i << std::endl;
-    std::cout << i << std::endl;
+  for (unsigned i ; i < shells.size() ; i++) {
+    //std::cout << shells[i] << std::endl;
+    int csize = shells[i].cartesian_size();
+    int size = shells[i].size();
+    std::cout << "Shell " << i << std::endl;
+    std::cout << "  Cartesian size " << csize << std::endl;
+    std::cout << "  Size " << size << std::endl;
+    std::cout << "  Origin (Bohr) "
+              << shells[i].O[0]*kimi::bohr_to_angstrom << " "
+              << shells[i].O[1]*kimi::bohr_to_angstrom << " "
+              << shells[i].O[2]*kimi::bohr_to_angstrom << std::endl;
     //std::cout << p << std::endl;
-    //std::cout << orbitals[i].cartesian_size() << std::endl;
-    //std::cout << orbitals[i].O << std::endl;
+    //std::cout << shells[i].cartesian_size() << std::endl;
+    //std::cout << shells[i].O << std::endl;
   }
 
 
   //std::copy(
-    //begin(orbitals),
-    //end(orbitals),
+    //begin(shells),
+    //end(shells),
     //std::ostream_iterator<libint2::Shell>(std::cout, "\n")
    //);
 
