@@ -100,7 +100,7 @@ $(executable): $(OBJFILES)
 
 clean: ## Clean main files
 	@echo Cleaning up...
-	$(MF_DEBUG)for i in $(CLEAN_FILES); do echo -e "[RM] $$i"; rm -rf $$i; done
+	$(MF_DEBUG)for i in $(CLEAN_FILES); do echo "[RM] $$i"; rm -rf $$i; done
 
 tags: $(SOURCES) ## Create tags
 	ctags -R --c++-kinds=+p --fields=+iaS --extra=+q $(SOURCES) $(subst -I,,$(INCLUDE_FLAGS))
