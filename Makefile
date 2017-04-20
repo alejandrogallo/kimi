@@ -11,7 +11,7 @@ MACROS ?=\
 -DVERSION=$(VERSION)
 
 CFLAGS_CLIBS = -I$(PWD)/clibs/include
-LDFLAGS_CLIBS = -L$(PWD)/clibs/lib
+LDFLAGS_CLIBS = -L$(PWD)/clibs/lib -L$(PWD)/clibs/lib64
 CFLAGS_libeigen = -I$(PWD)/clibs/include/eigen3/
 LDFLAGS_libint = -lint2
 CFLAGS_libint = -I$(PWD)/clibs/include/libint2
@@ -28,7 +28,8 @@ $(MACROS) \
 $(INCLUDE_FLAGS) \
 
 CFLAGS = \
-$(CXXFLAGS)
+$(MACROS) \
+$(INCLUDE_FLAGS)
 
 LD_FLAGS = \
 $(LDFLAGS_CLIBS) \
@@ -58,8 +59,10 @@ $(shell echo $(SOURCES) | sed "s/\.\S*/.d/g") \
 -include $(DEPFILES)
 
 
-CXX = g++ -std=c++11
+CXX = g++
 CC = cc
+
+CXXFLAGS += -std=c++11
 
 .DEFAULT_GOAL := $(executable)
 all: $(executable)
