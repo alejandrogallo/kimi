@@ -19,7 +19,7 @@
 #include <constants.h>
 
 
-INIReader get_configuration(std::string file_name = kimi::CONFIG_FILE_NAME)
+INIReader get_configuration(std::string file_name)
 {
     INIReader reader(file_name);
     if (reader.ParseError() < 0) {
@@ -32,21 +32,30 @@ INIReader get_configuration(std::string file_name = kimi::CONFIG_FILE_NAME)
 int main(int argc, char* argv[]) {
 
   std::cout << "VERSION: " << VERSION << std::endl;
-  INIReader configuration = get_configuration();
+  const std::string configuration_file = (argc > 1) ? argv[1] : kimi::CONFIG_FILE_NAME ;
+  INIReader configuration = get_configuration(configuration_file);
   Debug logger("[main]", Debug::verbose, std::cout);
-  const std::string structure_file = configuration.Get("ini", "structure", kimi::XYZ_INPUT_NAME);
-  const std::string basis_set = configuration.Get("ini", "basis-set", "sto-3g");
+  const std::string structure_file = configuration.Get("ini",
+      "structure", kimi::XYZ_INPUT_NAME);
+  const std::string basis_set = configuration.Get("ini",
+      "basis-set", "sto-3g");
 
 
-  logger << logger.info << "Config loaded from = " << kimi::CONFIG_FILE_NAME << std::endl
-                        << "Structure file     = " << structure_file   << std::endl
-                        << "Basis set          = " << basis_set        << std::endl;
+  logger << logger.info << "Config loaded from = "
+                        << configuration_file     << std::endl
+                        << "Structure file     = "
+                        << structure_file         << std::endl
+                        << "Basis set          = "
+                        << basis_set              << std::endl;
 
   logger << logger.info << "Initialising libint2" << std::endl;
   libint2::initialize();  // safe to use libint now
 
   // all other code snippets go here
-  logger << logger.info << "Reading in input file " << structure_file << std::endl;
+  logger << logger.info
+         << "Reading in input file "
+         << structure_file
+         << std::endl;
   std::ifstream input_file(structure_file);
   std::vector<libint2::Atom> atoms = libint2::read_dotxyz(input_file);
 
@@ -90,22 +99,30 @@ int main(int argc, char* argv[]) {
 
   auto shell2bf = shells.shell2bf();
 
+  // This pointer will point to computed shell sets
   const auto& overlap_buffer = overlap_engine.results();
 
   for (auto s1 = 0; s1 != shells.size(); ++s1) {
     for (auto s2 = 0; s2 != shells.size(); ++s2) {
+
       std::cout << "Compute shell set {" << s1 << "," << s2 << "} ... ";
       overlap_engine.compute(shells[s1], shells[s2]);
       std::cout << "Done" << std::endl;
+
+      // Location of the computed integrals
+      auto ints_shellset = overlap_buffer[0];
+      if (ints_shellset == nullptr) {
+        // nullptr if the entire shell-set was screened out
+        continue;
+      }
+
     }
   }
 
 
-  //std::copy(
-    //begin(shells),
-    //end(shells),
-    //std::ostream_iterator<libint2::Shell>(std::cout, "\n")
-   //);
+
+
+
 
 
   libint2::finalize();  // do not use libint after this
