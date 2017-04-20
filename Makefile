@@ -56,8 +56,9 @@ $(shell echo $(SOURCES) | sed "s/\.\S*/.o/g") \
 DEPFILES = \
 $(shell echo $(SOURCES) | sed "s/\.\S*/.d/g") \
 
+ifneq ($(MAKECMDGOALS), clean)
 -include $(DEPFILES)
-
+endif
 
 CXX = g++
 CC = cc
