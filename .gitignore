@@ -6,6 +6,7 @@ test.sh
 *.swp
 clibs/include/
 clibs/lib/
+clibs/build/
 clibs/share/
 
 # Object files
