@@ -20,9 +20,7 @@ INCLUDE_FLAGS= \
 -I$(PWD) \
 -I$(PWD)/src \
 $(CFLAGS_CLIBS) \
-$(LDFLAGS_CLIBS) \
 $(CFLAGS_libeigen) \
-$(CFLAGS_CLIBS) \
 
 CXXFLAGS = \
 $(MACROS) \
@@ -108,7 +106,7 @@ clean: ## Clean main files
 	$(MF_DEBUG)for i in $(CLEAN_FILES); do echo "[RM] $$i"; rm -rf $$i; done
 
 tags: $(SOURCES) ## Create tags
-	ctags -R --c++-kinds=+p --fields=+iaS --extra=+q $(SOURCES) $(subst -I,,$(INCLUDE_FLAGS))
+	ctags -R --sort=yes --c++-kinds=+p --fields=+iatS --extra=+q $(SOURCES) $(subst -I,,$(INCLUDE_FLAGS))
 
 FORCE:
 print-%: ; @echo $*=$($*)
