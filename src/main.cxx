@@ -14,22 +14,12 @@
 #include <libint2.hpp>
 
 #include <clibs/debug/debug.h>
-#include <clibs/inih/cpp/INIReader.h>
 
 #include "constants.h"
+#include "config.h"
 #include "utils.h"
 
 
-INIReader
-get_configuration(std::string file_name)
-{
-  INIReader reader(file_name);
-  if (reader.ParseError() < 0) {
-    std::cout << "Can't load " << file_name << std::endl;
-    return reader;
-  }
-  return reader;
-}
 
 int main(int argc, char* argv[]) {
 
