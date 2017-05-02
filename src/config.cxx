@@ -2,7 +2,7 @@
 #include <iostream>
 
 INIReader
-get_configuration(std::string file_name)
+kimi::get_configuration(std::string file_name)
 {
   INIReader reader(file_name);
   if (reader.ParseError() < 0) {

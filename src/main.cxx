@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
 
   std::cout << "VERSION: " << VERSION << std::endl;
   const std::string configuration_file = (argc > 1) ? argv[1] : kimi::CONFIG_FILE_NAME ;
-  INIReader configuration = get_configuration(configuration_file);
+  INIReader configuration = kimi::get_configuration(configuration_file);
   Debug logger("[main]", Debug::verbose, std::cout);
   const std::string structure_file = configuration.Get("ini",
       "structure", kimi::XYZ_INPUT_NAME);
