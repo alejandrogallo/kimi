@@ -1,7 +1,7 @@
 
 # File: common-makefile/src/version.m4
-MAKEFILE_VERSION = v0-5-g07d7f44
-MAKEFILE_DATE = 02-05-2017 01:06
+MAKEFILE_VERSION = v0-8-gddce032
+MAKEFILE_DATE = 02-05-2017 14:23
 MAKEFILE_AUTHOR = Alejandro Gallo
 MAKEFILE_URL = https://github.com/alejandrogallo/clang-makefile
 MAKEFILE_LICENSE = GPLv3
@@ -40,7 +40,9 @@ DEPFILES = \
 $(shell echo $(SOURCES) | sed "s/\.\S*/.d/g") \
 
 ifneq ($(MAKECMDGOALS), clean)
+ifneq ($(MAKECMDGOALS), help)
 -include $(DEPFILES)
+endif
 endif
 
 .DEFAULT_GOAL := $(EXECUTABLE)
