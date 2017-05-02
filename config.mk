@@ -29,6 +29,7 @@ clibs/inih/ini.c \
 
 CXXFILES = \
 $(wildcard $(SRCDIR)/*.cxx) \
+$(wildcard $(SRCDIR)/**/*.cxx) \
 clibs/inih/cpp/INIReader.cpp \
 
 CXX = g++

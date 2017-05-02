@@ -18,6 +18,7 @@
 #include "constants.h"
 #include "config.h"
 #include "utils.h"
+#include "algorithms/HartreeFock.h"
 
 
 
