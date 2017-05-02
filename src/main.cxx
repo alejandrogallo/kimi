@@ -16,17 +16,19 @@
 #include <clibs/debug/debug.h>
 #include <clibs/inih/cpp/INIReader.h>
 
-#include <constants.h>
+#include "constants.h"
+#include "utils.h"
 
 
-INIReader get_configuration(std::string file_name)
+INIReader
+get_configuration(std::string file_name)
 {
-    INIReader reader(file_name);
-    if (reader.ParseError() < 0) {
-        std::cout << "Can't load " << file_name << std::endl;
-        return reader;
-    }
+  INIReader reader(file_name);
+  if (reader.ParseError() < 0) {
+    std::cout << "Can't load " << file_name << std::endl;
     return reader;
+  }
+  return reader;
 }
 
 int main(int argc, char* argv[]) {
@@ -39,6 +41,8 @@ int main(int argc, char* argv[]) {
       "structure", kimi::XYZ_INPUT_NAME);
   const std::string basis_set = configuration.Get("ini",
       "basis-set", "sto-3g");
+  int number_of_electrons = 0;
+  int i;
 
 
   logger << logger.info << "Config loaded from = "
@@ -58,11 +62,19 @@ int main(int argc, char* argv[]) {
          << std::endl;
   std::ifstream input_file(structure_file);
   std::vector<libint2::Atom> atoms = libint2::read_dotxyz(input_file);
+  logger << "Number of atoms = " << atoms.size() << std::endl;
+
+  // Compute number of electrons
+  for (i = 0; i < atoms.size(); ++i) {
+    number_of_electrons += atoms[i].atomic_number;
+  }
+  std::cout << "Nuclear repulsion energy "
+            << compute_nuclear_repulsion_energy(atoms) << std::endl;
+
+  logger << "Number of electrons = " << number_of_electrons << std::endl;
 
   logger << logger.info << "Initializing basis set" << std::endl;
   libint2::BasisSet shells(basis_set, atoms);
-
-  shells.set_pure(true);
 
   logger << logger.info
          << "Number of basis functions = "
@@ -131,4 +143,61 @@ int main(int argc, char* argv[]) {
 
   return 0;
 }
+
+//Matrix compute_1body_ints(
+  //const std::vector<libint2::Shell>& shells,
+  //libint2::Operator obtype,
+  //const std::vector<Atom>& atoms)
+//{
+  //using libint2::Shell;
+  //using libint2::Engine;
+  //using libint2::Operator;
+
+  //const auto n = nbasis(shells);
+  //Matrix result(n,n);
+
+  //// construct the overlap integrals engine
+  //Engine engine(obtype, max_nprim(shells), max_l(shells), 0);
+  //// nuclear attraction ints engine needs to know where the charges sit ...
+  //// the nuclei are charges in this case; in QM/MM there will also be classical charges
+  //if (obtype == Operator::nuclear) {
+    //std::vector<std::pair<double,std::array<double,3>>> q;
+    //for(const auto& atom : atoms) {
+      //q.push_back( {static_cast<double>(atom.atomic_number), {{atom.x, atom.y, atom.z}}} );
+    //}
+    //engine.set_params(q);
+  //}
+
+  //auto shell2bf = map_shell_to_basis_function(shells);
+
+  //// buf[0] points to the target shell set after every call  to engine.compute()
+  //const auto& buf = engine.results();
+
+  //// loop over unique shell pairs, {s1,s2} such that s1 >= s2
+  //// this is due to the permutational symmetry of the real integrals over Hermitian operators: (1|2) = (2|1)
+  //for(auto s1=0; s1!=shells.size(); ++s1) {
+
+    //auto bf1 = shell2bf[s1]; // first basis function in this shell
+    //auto n1 = shells[s1].size();
+
+    //for(auto s2=0; s2<=s1; ++s2) {
+
+      //auto bf2 = shell2bf[s2];
+      //auto n2 = shells[s2].size();
+
+      //// compute shell pair; return is the pointer to the buffer
+      //engine.compute(shells[s1], shells[s2]);
+
+      //// "map" buffer to a const Eigen Matrix, and copy it to the corresponding blocks of the result
+      //Eigen::Map<const Matrix> buf_mat(buf[0], n1, n2);
+      //result.block(bf1, bf2, n1, n2) = buf_mat;
+      //if (s1 != s2) // if s1 >= s2, copy {s1,s2} to the corresponding {s2,s1} block, note the transpose!
+      //result.block(bf2, bf1, n2, n1) = buf_mat.transpose();
+
+    //}
+  //}
+
+  //return result;
+//}
+
 
