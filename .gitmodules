@@ -1,12 +1,16 @@
 [submodule "clibs/inih"]
 	path = clibs/inih
 	url = git://github.com/clibs/inih.git
+  ignore = dirty
 [submodule "clibs/debug"]
 	path = clibs/debug
 	url = git://github.com/0x00A/debug.git
+  ignore = dirty
 [submodule "clibs/libint"]
 	path = clibs/libint
 	url = git://github.com/alejandrogallo/libint.git
+  ignore = dirty
 [submodule "clibs/eigen"]
 	path = clibs/eigen
 	url = git://github.com/RLovelett/eigen.git
+  ignore = dirty
