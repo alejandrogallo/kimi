@@ -1,7 +1,7 @@
 #include "utils.h"
 
 double
-compute_nuclear_repulsion_energy(std::vector<libint2::Atom>& structure)
+kimi::compute_nuclear_repulsion_energy(std::vector<libint2::Atom>& structure)
 {
   int i, j;
   double enuc(0.0), r2(0.0);
@@ -21,7 +21,7 @@ compute_nuclear_repulsion_energy(std::vector<libint2::Atom>& structure)
 }
 
 Eigen::MatrixXd
-compute_1body_ints(
+kimi::compute_1body_ints(
   const libint2::BasisSet shells,
   libint2::Operator obtype,
   const std::vector<libint2::Atom>& atoms
@@ -32,7 +32,7 @@ compute_1body_ints(
   int n = shells.nbf();
   Eigen::MatrixXd result(n,n);
 
-  //// construct the overlap integrals engine
+  // construct the overlap integrals engine
   libint2::Engine engine(obtype, shells.max_nprim(), shells.max_l(), 0);
   // nuclear attraction ints engine needs to know where the charges sit ...
   // the nuclei are charges in this case; in QM/MM there will also be classical charges
@@ -81,3 +81,43 @@ compute_1body_ints(
 
   return result;
 }
+
+Eigen::MatrixXd
+kimi::compute_soad(const std::vector<libint2::Atom>& atoms) {
+
+  // compute number of atomic orbitals
+  size_t nao = 0;
+  for(const auto& atom: atoms) {
+    const auto Z = atom.atomic_number;
+    if (Z == 1 || Z == 2) // H, He
+      nao += 1;
+    else if (Z <= 10) // Li - Ne
+      nao += 5;
+    else
+      throw "SOAD with Z > 10 is not yet supported";
+  }
+
+  // compute the minimal basis density
+  Eigen::MatrixXd D = Eigen::MatrixXd::Zero(nao, nao);
+  size_t ao_offset = 0; // first AO of this atom
+  for(const auto& atom: atoms) {
+    const auto Z = atom.atomic_number;
+    if (Z == 1 || Z == 2) { // H, He
+      D(ao_offset, ao_offset) = Z; // all electrons go to the 1s
+      ao_offset += 1;
+    }
+    else if (Z <= 10) {
+      D(ao_offset, ao_offset) = 2; // 2 electrons go to the 1s
+      D(ao_offset+1, ao_offset+1) = (Z == 3) ? 1 : 2; // Li? only 1 electron in 2s, else 2 electrons
+      // smear the remaining electrons in 2p orbitals
+      const double num_electrons_per_2p = (Z > 4) ? (double)(Z - 4)/3 : 0;
+      for(auto xyz=0; xyz!=3; ++xyz)
+        D(ao_offset+2+xyz, ao_offset+2+xyz) = num_electrons_per_2p;
+      ao_offset += 5;
+    }
+  }
+
+  return D * 0.5; // we use densities normalized to # of electrons/2
+}
+
+
