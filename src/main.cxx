@@ -148,15 +148,59 @@ int main(int argc, char* argv[]) {
   V.resize(0,0);
 
 
-  //Eigen::MatrixXd 
+  Eigen::MatrixXd D(n_basis_functions, n_basis_functions);
+  Eigen::MatrixXd D_last = D;
+
+  for ( i=0 ; i < n_basis_functions ; i++) {
+    for (unsigned j=0 ; j < n_basis_functions ; j++) {
+      D(i,j) = 1;
+    }
+  }
+
+  std::cout << std::endl;
+  std::cout << std::endl;
+  std::cout << "Initial Density Matrix:" << std::endl;
+  std::cout << D << std::endl;
+
+  int iter = 0;
+  double rmsd = 1;
+  double energy_diff = 1;
+  double ehf = 0;
+
+  double ehf_last = 0;
+
+  do {
+    const auto tstart = std::chrono::high_resolution_clock::now();
+    ++iter;
 
 
+
+
+
+
+
+    const auto tstop = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<double> time_elapsed = tstop - tstart;
+    if (iter == 1)
+      std::cout <<
+        "Iter             "
+        "E(elec)          "
+        "E(tot)           "
+        "Delta(E)         "
+        "RMS(D)           "
+        "Time(s)          " << std::endl;
+    printf(" %02d %20.12f %20.12f %20.12f %20.12f %10.5lf\n",
+            iter, 0.0, 0.0 + 2.0, energy_diff, rmsd, time_elapsed.count());
+
+  } while (
+      ((fabs(energy_diff) > electronic_convergence) ||
+      (fabs(rmsd) > electronic_convergence))        &&
+      (iter < electronic_iterations)
+    );
 
 
 
   libint2::finalize();  // do not use libint after this
-  // can repeat the libint2::initialize() ... finalize() cycle as many times as
-  // necessary
 
   return 0;
 }
