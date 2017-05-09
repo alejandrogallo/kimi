@@ -34,13 +34,23 @@ int main(int argc, char* argv[]) {
       "basis-set", "sto-3g");
   int number_of_electrons = 0;
   int i;
+  int n_basis_functions;
+  int electronic_iterations = configuration.GetInteger("ini",
+      "electronic-iterations", 100);
+  double electronic_convergence = configuration.GetReal("ini",
+      "electronic-convergence", 1e-12);
 
 
-  logger << logger.info << "Config loaded from = "
+
+  logger << logger.info << "Config loaded from     = "
                         << configuration_file     << std::endl
-                        << "Structure file     = "
+                        << "Structure file         = "
                         << structure_file         << std::endl
-                        << "Basis set          = "
+                        << "Electronic iterations  = "
+                        << electronic_iterations  << std::endl
+                        << "Electronic convergence = "
+                        << electronic_convergence << std::endl
+                        << "Basis set              = "
                         << basis_set              << std::endl;
 
   logger << logger.info << "Initialising libint2" << std::endl;
@@ -60,16 +70,18 @@ int main(int argc, char* argv[]) {
     number_of_electrons += atoms[i].atomic_number;
   }
   std::cout << "Nuclear repulsion energy "
-            << compute_nuclear_repulsion_energy(atoms) << std::endl;
+            << kimi::compute_nuclear_repulsion_energy(atoms) << std::endl;
 
   logger << "Number of electrons = " << number_of_electrons << std::endl;
 
   logger << logger.info << "Initializing basis set" << std::endl;
   libint2::BasisSet shells(basis_set, atoms);
 
+  n_basis_functions = shells.nbf();
+
   logger << logger.info
          << "Number of basis functions = "
-         << shells.nbf()
+         << n_basis_functions
          << std::endl;
   logger << logger.info
          << "Maximum number of primitives in shells = "
@@ -87,42 +99,56 @@ int main(int argc, char* argv[]) {
   std::cout << std::endl;
   std::cout << std::endl;
   std::cout << "Calculating overlaps" << std::endl;
-
   std::cout <<
-  "  _                        " << std::endl <<
-  " /      *               3  " << std::endl <<
-  " |   phi  (r) phi  (r) d  r" << std::endl <<
-  "_/      i        j         " << std::endl;
+  "          _                        " << std::endl <<
+  "         /      *               3  " << std::endl <<
+  " S   =   |   phi  (r) phi  (r) d  r" << std::endl <<
+  "  ij    _/      i        j         " << std::endl;
 
-  libint2::Engine overlap_engine(
-    libint2::Operator::overlap,
-    shells.max_nprim(),
-    shells.max_l()
-  );
+  Eigen::MatrixXd S = kimi::compute_1body_ints(
+      shells, libint2::Operator::overlap);
+  std::cout << S << std::endl;
 
-  auto shell2bf = shells.shell2bf();
+  std::cout << std::endl;
+  std::cout << std::endl;
+  std::cout << "Calculating kinteic integrals" << std::endl;
+  std::cout <<
+  "          _                             " << std::endl <<
+  "         /      *                    3  " << std::endl <<
+  " T   =   |   phi  (r) grad phi  (r) d  r" << std::endl <<
+  "  ij    _/      i             j         " << std::endl;
 
-  // This pointer will point to computed shell sets
-  const auto& overlap_buffer = overlap_engine.results();
+  Eigen::MatrixXd T = kimi::compute_1body_ints(
+      shells, libint2::Operator::kinetic);
+  std::cout << T << std::endl;
 
-  for (auto s1 = 0; s1 != shells.size(); ++s1) {
-    for (auto s2 = 0; s2 != shells.size(); ++s2) {
+  std::cout << std::endl;
+  std::cout << std::endl;
+  std::cout << "Calculating kinteic integrals" << std::endl;
+  std::cout <<
+  "          _                                     " << std::endl <<
+  "         /      *      __    1               3  " << std::endl <<
+  " V   =   |   phi  (r) \\   -------- phi  (r) d  r" << std::endl <<
+  "  ij    _/      i     /__ | R - r|    j         " << std::endl <<
+  "                         v   v                  " << std::endl;
 
-      std::cout << "Compute shell set {" << s1 << "," << s2 << "} ... ";
-      overlap_engine.compute(shells[s1], shells[s2]);
-      std::cout << "Done" << std::endl;
+  Eigen::MatrixXd V = kimi::compute_1body_ints(
+      shells, libint2::Operator::nuclear, atoms);
+  std::cout << V << std::endl;
 
-      // Location of the computed integrals
-      auto ints_shellset = overlap_buffer[0];
-      if (ints_shellset == nullptr) {
-        // nullptr if the entire shell-set was screened out
-        continue;
-      }
+  std::cout << std::endl;
+  std::cout << std::endl;
+  std::cout << "Calculating the core hamiltonian" << std::endl
+            << "  H = T + V" << std::endl;
+  Eigen::MatrixXd H = T + V;
+  std::cout << H << std::endl;
 
-    }
-  }
+  // T and V no longer needed, free up the memory
+  T.resize(0,0);
+  V.resize(0,0);
 
 
+  //Eigen::MatrixXd 
 
 
 
