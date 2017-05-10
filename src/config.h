@@ -2,6 +2,8 @@
 
 namespace kimi
 {
-  INIReader
-    get_configuration(std::string file_name);
+  typedef INIReader config;
+
+  config
+  get_configuration(std::string file_name);
 } /* kimi */ 
