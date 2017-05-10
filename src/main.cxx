@@ -32,13 +32,15 @@ int main(int argc, char* argv[]) {
       "structure", kimi::XYZ_INPUT_NAME);
   const std::string basis_set = configuration.Get("ini",
       "basis-set", "sto-3g");
-  int number_of_electrons = 0;
-  int i;
-  int n_basis_functions;
   int electronic_iterations = configuration.GetInteger("ini",
       "electronic-iterations", 100);
   double electronic_convergence = configuration.GetReal("ini",
       "electronic-convergence", 1e-12);
+  int number_of_electrons = 0;
+  int number_of_occ_orbs;
+  int i;
+  int n_basis_functions;
+  double enuc;
 
 
 
@@ -69,8 +71,10 @@ int main(int argc, char* argv[]) {
   for (i = 0; i < atoms.size(); ++i) {
     number_of_electrons += atoms[i].atomic_number;
   }
+  number_of_occ_orbs = number_of_electrons/2;
+  enuc = kimi::compute_nuclear_repulsion_energy(atoms);
   std::cout << "Nuclear repulsion energy "
-            << kimi::compute_nuclear_repulsion_energy(atoms) << std::endl;
+            << enuc << std::endl;
 
   logger << "Number of electrons = " << number_of_electrons << std::endl;
 
@@ -149,6 +153,7 @@ int main(int argc, char* argv[]) {
 
 
   Eigen::MatrixXd D(n_basis_functions, n_basis_functions);
+  Eigen::MatrixXd F(n_basis_functions, n_basis_functions);
   Eigen::MatrixXd D_last = D;
 
   for ( i=0 ; i < n_basis_functions ; i++) {
@@ -163,8 +168,8 @@ int main(int argc, char* argv[]) {
   std::cout << D << std::endl;
 
   int iter = 0;
-  double rmsd = 1;
-  double energy_diff = 1;
+  double rmsd = 0;
+  double energy_diff = 0;
   double ehf = 0;
 
   double ehf_last = 0;
@@ -173,9 +178,34 @@ int main(int argc, char* argv[]) {
     const auto tstart = std::chrono::high_resolution_clock::now();
     ++iter;
 
+    ehf_last = ehf;
+    D_last = D;
 
 
+    F = H;
+    F += kimi::compute_2body_fock_simple(shells, D);
 
+    // solve F C = e S C
+    Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> gen_eig_solver(F, S);
+    auto eps = gen_eig_solver.eigenvalues();
+    // C now has all eigenvectors from the shell of course
+    auto C = gen_eig_solver.eigenvectors();
+    //std::cout << "D = " << std::endl;
+    //std::cout << D << std::endl;
+
+    // Computer the new density D = C(occ) . C(occ)T
+    auto C_occ = C.leftCols(number_of_occ_orbs);
+    D = C_occ * C_occ.transpose();
+
+    ehf = 0.0;
+    for (unsigned i=0 ; i < n_basis_functions; i++) {
+      for (unsigned j=0 ; j < n_basis_functions ; j++) {
+        ehf += D(i,j) * (H(i,j) + F(i,j));
+      }
+    }
+
+    energy_diff = ehf - ehf_last;
+    rmsd = (D - D_last).norm();
 
 
 
@@ -190,7 +220,7 @@ int main(int argc, char* argv[]) {
         "RMS(D)           "
         "Time(s)          " << std::endl;
     printf(" %02d %20.12f %20.12f %20.12f %20.12f %10.5lf\n",
-            iter, 0.0, 0.0 + 2.0, energy_diff, rmsd, time_elapsed.count());
+            iter, ehf, ehf + enuc, energy_diff, rmsd, time_elapsed.count());
 
   } while (
       ((fabs(energy_diff) > electronic_convergence) ||
@@ -198,12 +228,13 @@ int main(int argc, char* argv[]) {
       (iter < electronic_iterations)
     );
 
+  printf("** Hartree-Fock energy = %20.12f\n", ehf + enuc);
+
+
 
 
   libint2::finalize();  // do not use libint after this
 
   return 0;
 }
-
-
 
